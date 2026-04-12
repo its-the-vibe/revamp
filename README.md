@@ -107,3 +107,9 @@ Both flags can be combined in a single invocation:
 ```bash
 revamp summary --title --repo
 ```
+
+The number of PRs fetched defaults to 100 and can be changed with the `--limit` flag:
+
+```bash
+revamp summary --title --limit 500
+```

@@ -14,6 +14,7 @@ import (
 var (
 	summaryByTitle bool
 	summaryByRepo  bool
+	summaryLimit   int
 )
 
 var summaryCmd = &cobra.Command{
@@ -25,6 +26,7 @@ var summaryCmd = &cobra.Command{
 func init() {
 	summaryCmd.Flags().BoolVar(&summaryByTitle, "title", false, "Group and count open Renovate PRs by title")
 	summaryCmd.Flags().BoolVar(&summaryByRepo, "repo", false, "Group and count open Renovate PRs by repository")
+	summaryCmd.Flags().IntVar(&summaryLimit, "limit", 100, "Maximum number of PRs to fetch")
 	rootCmd.AddCommand(summaryCmd)
 }
 
@@ -39,13 +41,13 @@ func runSummary(cmd *cobra.Command, args []string) error {
 	}
 
 	if summaryByTitle {
-		if err := printSummary(org, "title", `.[].title`); err != nil {
+		if err := printSummary(org, summaryLimit, "title", `.[].title`); err != nil {
 			return err
 		}
 	}
 
 	if summaryByRepo {
-		if err := printSummary(org, "repository", `.[].repository.nameWithOwner`); err != nil {
+		if err := printSummary(org, summaryLimit, "repository", `.[].repository.nameWithOwner`); err != nil {
 			return err
 		}
 	}
@@ -53,13 +55,13 @@ func runSummary(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func printSummary(org, jsonField, jqExpr string) error {
+func printSummary(org string, limit int, jsonField, jqExpr string) error {
 	ghArgs := []string{
 		"search", "prs",
 		"--owner", org,
 		"--author", "app/renovate",
 		"--state", "open",
-		"-L", "100",
+		"-L", fmt.Sprintf("%d", limit),
 		"--json", jsonField,
 		"--jq", jqExpr,
 	}
