@@ -1,0 +1,5 @@
+# revamp configuration
+# Copy this file to config.yaml and fill in your values.
+
+# The GitHub organisation to search for Renovate PRs
+org: "my-org"
