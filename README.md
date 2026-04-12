@@ -59,3 +59,51 @@ gh search prs --owner <org> --author "app/renovate" --state open -L 100 \
 ```
 
 and prints the results sorted alphabetically to standard output.
+
+### Summarise open Renovate PRs by title
+
+```bash
+revamp summary --title
+```
+
+This runs:
+
+```
+gh search prs --owner <org> --author "app/renovate" --state open -L 100 \
+  --json title \
+  --jq '.[].title'
+```
+
+and prints each unique PR title together with how many times it appears, sorted by count descending:
+
+```
+     5 chore(deps): update dependency foo to v2
+     3 chore(deps): update dependency bar to v1.2.3
+```
+
+### Summarise open Renovate PRs by repository
+
+```bash
+revamp summary --repo
+```
+
+This runs:
+
+```
+gh search prs --owner <org> --author "app/renovate" --state open -L 100 \
+  --json repository \
+  --jq '.[].repository.nameWithOwner'
+```
+
+and prints each repository together with its open Renovate PR count, sorted by count descending:
+
+```
+     7 its-the-vibe/repo-one
+     2 its-the-vibe/repo-two
+```
+
+Both flags can be combined in a single invocation:
+
+```bash
+revamp summary --title --repo
+```
