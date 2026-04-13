@@ -15,6 +15,7 @@ var (
 	summaryByTitle bool
 	summaryByRepo  bool
 	summaryLimit   int
+	summaryBranch  string
 )
 
 var summaryCmd = &cobra.Command{
@@ -27,12 +28,13 @@ func init() {
 	summaryCmd.Flags().BoolVar(&summaryByTitle, "title", false, "Group and count open Renovate PRs by title")
 	summaryCmd.Flags().BoolVar(&summaryByRepo, "repo", false, "Group and count open Renovate PRs by repository")
 	summaryCmd.Flags().IntVar(&summaryLimit, "limit", 100, "Maximum number of PRs to fetch")
+	summaryCmd.Flags().StringVar(&summaryBranch, "branch", "", "List repositories with open PRs from the given branch")
 	rootCmd.AddCommand(summaryCmd)
 }
 
 func runSummary(cmd *cobra.Command, args []string) error {
-	if !summaryByTitle && !summaryByRepo {
-		return fmt.Errorf("specify at least one of --title or --repo")
+	if !summaryByTitle && !summaryByRepo && summaryBranch == "" {
+		return fmt.Errorf("specify at least one of --title, --repo, or --branch")
 	}
 
 	org := viper.GetString("org")
@@ -48,6 +50,12 @@ func runSummary(cmd *cobra.Command, args []string) error {
 
 	if summaryByRepo {
 		if err := printSummary(org, summaryLimit, "repository", `.[].repository.nameWithOwner`); err != nil {
+			return err
+		}
+	}
+
+	if summaryBranch != "" {
+		if err := printBranchRepos(org, summaryBranch); err != nil {
 			return err
 		}
 	}
@@ -99,6 +107,34 @@ func printSummary(org string, limit int, jsonField, jqExpr string) error {
 
 	for _, e := range entries {
 		fmt.Printf("%6d %s\n", e.count, e.name)
+	}
+
+	return nil
+}
+
+func printBranchRepos(org, branch string) error {
+	ghArgs := []string{
+		"search", "prs",
+		"--owner", org,
+		"--head", branch,
+		"--state", "open",
+		"--json", "repository",
+		"--jq", `.[].repository.nameWithOwner`,
+	}
+
+	ghCmd := exec.Command("gh", ghArgs...)
+	ghCmd.Stderr = os.Stderr
+
+	output, err := ghCmd.Output()
+	if err != nil {
+		return fmt.Errorf("gh command failed: %w", err)
+	}
+
+	lines := strings.Split(strings.TrimRight(string(output), "\n"), "\n")
+	for _, line := range lines {
+		if line != "" {
+			fmt.Println(line)
+		}
 	}
 
 	return nil
