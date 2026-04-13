@@ -113,3 +113,24 @@ The number of PRs fetched defaults to 100 and can be changed with the `--limit` 
 ```bash
 revamp summary --title --limit 500
 ```
+
+### List repositories with open PRs from a branch
+
+```bash
+revamp summary --branch renovate/foo
+```
+
+This runs:
+
+```
+gh search prs --owner <org> --head renovate/foo --state open \
+  --json repository \
+  --jq '.[].repository.nameWithOwner'
+```
+
+and prints each repository that has an open PR from that branch to standard output:
+
+```
+its-the-vibe/repo-one
+its-the-vibe/repo-two
+```
