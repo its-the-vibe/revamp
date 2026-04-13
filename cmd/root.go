@@ -9,6 +9,7 @@ import (
 )
 
 var cfgFile string
+var orgOverride string
 
 var rootCmd = &cobra.Command{
 	Use:   "revamp",
@@ -27,6 +28,8 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default: config.yaml in current directory)")
+	rootCmd.PersistentFlags().StringVarP(&orgOverride, "org", "o", "", "GitHub organisation (overrides config file)")
+	viper.BindPFlag("org", rootCmd.PersistentFlags().Lookup("org")) //nolint:errcheck
 }
 
 func initConfig() {
