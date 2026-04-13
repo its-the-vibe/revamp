@@ -42,6 +42,14 @@ You can also point to a different config file with the `--config` flag:
 revamp --config /path/to/my-config.yaml list
 ```
 
+You can override the organisation from the config file for a single invocation with the `--org` (or `-o`) flag:
+
+```bash
+revamp --org another-org list
+```
+
+This flag is available for all commands and takes precedence over the value in the config file.
+
 ## Usage
 
 ### List open Renovate PRs
