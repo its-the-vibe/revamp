@@ -128,12 +128,18 @@ revamp summary --title --limit 500
 revamp summary --branch
 ```
 
-This runs:
+This first fetches all open Renovate PR titles and URLs in a single `gh search` call:
 
 ```
 gh search prs --owner <org> --author "app/renovate" --state open -L 100 \
-  --json headRefName \
-  --jq '.[].headRefName'
+  --json title,url \
+  --jq '.[] | [.title, .url] | @tsv'
+```
+
+Then, for each unique title (Renovate reuses the same branch name for the same dependency update across repos), it resolves the branch name with one `gh pr view` call:
+
+```
+gh pr view <url> --json headRefName --jq '.headRefName'
 ```
 
 and prints each unique Renovate branch name together with how many times it appears, sorted by count descending:

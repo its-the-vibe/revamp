@@ -58,6 +58,80 @@ func TestUniqueSortedLines(t *testing.T) {
 	}
 }
 
+func TestParseTitleURLLines(t *testing.T) {
+	tests := []struct {
+		name           string
+		input          string
+		wantCount      map[string]int
+		wantURLPresent map[string]bool // just check a URL was recorded, not its exact value
+	}{
+		{
+			name:           "empty input",
+			input:          "",
+			wantCount:      map[string]int{},
+			wantURLPresent: map[string]bool{},
+		},
+		{
+			name:  "single PR",
+			input: "Update lodash\thttps://github.com/org/repo/pull/1\n",
+			wantCount: map[string]int{
+				"Update lodash": 1,
+			},
+			wantURLPresent: map[string]bool{
+				"Update lodash": true,
+			},
+		},
+		{
+			name: "two different titles",
+			input: "Update lodash\thttps://github.com/org/repo-a/pull/1\n" +
+				"Update axios\thttps://github.com/org/repo-b/pull/2\n",
+			wantCount: map[string]int{
+				"Update lodash": 1,
+				"Update axios":  1,
+			},
+			wantURLPresent: map[string]bool{
+				"Update lodash": true,
+				"Update axios":  true,
+			},
+		},
+		{
+			name: "duplicate titles are counted",
+			input: "Update lodash\thttps://github.com/org/repo-a/pull/1\n" +
+				"Update lodash\thttps://github.com/org/repo-b/pull/2\n" +
+				"Update lodash\thttps://github.com/org/repo-c/pull/3\n",
+			wantCount: map[string]int{
+				"Update lodash": 3,
+			},
+			wantURLPresent: map[string]bool{
+				"Update lodash": true,
+			},
+		},
+		{
+			name:           "malformed lines without tab are skipped",
+			input:          "no-tab-here\n",
+			wantCount:      map[string]int{},
+			wantURLPresent: map[string]bool{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotCount, gotURL := parseTitleURLLines(tt.input)
+
+			if !reflect.DeepEqual(gotCount, tt.wantCount) {
+				t.Errorf("parseTitleURLLines(%q) titleCount = %v, want %v", tt.input, gotCount, tt.wantCount)
+			}
+
+			for title, wantPresent := range tt.wantURLPresent {
+				_, present := gotURL[title]
+				if present != wantPresent {
+					t.Errorf("parseTitleURLLines(%q) titleURL[%q] present=%v, want %v", tt.input, title, present, wantPresent)
+				}
+			}
+		})
+	}
+}
+
 func TestRunSummaryValidation(t *testing.T) {
 	// Save and restore flag state around each sub-test.
 	origTitle := summaryByTitle
