@@ -130,12 +130,26 @@ func printBranchRepos(org, branch string) error {
 		return fmt.Errorf("gh command failed: %w", err)
 	}
 
-	lines := strings.Split(strings.TrimRight(string(output), "\n"), "\n")
-	for _, line := range lines {
-		if line != "" {
-			fmt.Println(line)
-		}
+	for _, line := range uniqueSortedLines(string(output)) {
+		fmt.Println(line)
 	}
 
 	return nil
+}
+
+// uniqueSortedLines splits output by newlines, deduplicates, and returns the
+// entries sorted alphabetically. Empty lines are ignored.
+func uniqueSortedLines(output string) []string {
+	seen := map[string]bool{}
+	for _, line := range strings.Split(strings.TrimRight(output, "\n"), "\n") {
+		if line != "" {
+			seen[line] = true
+		}
+	}
+	result := make([]string, 0, len(seen))
+	for line := range seen {
+		result = append(result, line)
+	}
+	sort.Strings(result)
+	return result
 }
