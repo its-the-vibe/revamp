@@ -204,3 +204,11 @@ The number of PRs fetched defaults to 100 and can be changed with the `--limit` 
 ```bash
 revamp merge --limit 500
 ```
+
+To cap how many PRs are merged in a single run, use the `--max` flag:
+
+```bash
+revamp merge --max 10
+```
+
+This fetches up to `--limit` PRs but merges at most 10 of them, which is useful for rolling out updates incrementally.

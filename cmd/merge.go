@@ -15,6 +15,7 @@ var (
 	mergeDryRun  bool
 	mergeVerbose bool
 	mergeLimit   int
+	mergeMax     int
 )
 
 var mergeCmd = &cobra.Command{
@@ -28,6 +29,7 @@ func init() {
 	mergeCmd.Flags().BoolVar(&mergeDryRun, "dry-run", false, "Print what would be merged without actually merging")
 	mergeCmd.Flags().BoolVar(&mergeVerbose, "verbose", false, "Print additional details during merging")
 	mergeCmd.Flags().IntVar(&mergeLimit, "limit", 100, "Maximum number of PRs to fetch")
+	mergeCmd.Flags().IntVar(&mergeMax, "max", 0, "Maximum number of PRs to merge in a single run (0 = no limit)")
 	rootCmd.AddCommand(mergeCmd)
 }
 
@@ -92,6 +94,10 @@ func runMerge(cmd *cobra.Command, args []string) error {
 	if len(prs) == 0 {
 		fmt.Println("No open Renovate PRs found.")
 		return nil
+	}
+
+	if mergeMax > 0 && len(prs) > mergeMax {
+		prs = prs[:mergeMax]
 	}
 
 	if mergeDryRun {
