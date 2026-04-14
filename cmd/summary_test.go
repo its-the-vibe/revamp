@@ -62,23 +62,26 @@ func TestRunSummaryValidation(t *testing.T) {
 	// Save and restore flag state around each sub-test.
 	origTitle := summaryByTitle
 	origRepo := summaryByRepo
-	origBranch := summaryBranch
+	origBranch := summaryByBranch
+	origHead := summaryHead
 	t.Cleanup(func() {
 		summaryByTitle = origTitle
 		summaryByRepo = origRepo
-		summaryBranch = origBranch
+		summaryByBranch = origBranch
+		summaryHead = origHead
 	})
 
 	t.Run("no flags returns error", func(t *testing.T) {
 		summaryByTitle = false
 		summaryByRepo = false
-		summaryBranch = ""
+		summaryByBranch = false
+		summaryHead = ""
 
 		err := runSummary(summaryCmd, nil)
 		if err == nil {
 			t.Fatal("expected an error when no flags are provided, got nil")
 		}
-		want := "specify at least one of --title, --repo, or --branch"
+		want := "specify at least one of --title, --repo, --branch, or --head"
 		if err.Error() != want {
 			t.Errorf("got error %q, want %q", err.Error(), want)
 		}
@@ -87,7 +90,25 @@ func TestRunSummaryValidation(t *testing.T) {
 	t.Run("branch flag set with no org returns org error", func(t *testing.T) {
 		summaryByTitle = false
 		summaryByRepo = false
-		summaryBranch = "renovate/foo"
+		summaryByBranch = true
+		summaryHead = ""
+
+		// Ensure org is not set so we hit the org-missing error before any gh call.
+		err := runSummary(summaryCmd, nil)
+		if err == nil {
+			t.Fatal("expected an error when org is not set, got nil")
+		}
+		want := "org is not set; please configure it in config.yaml or via the ORG environment variable"
+		if err.Error() != want {
+			t.Errorf("got error %q, want %q", err.Error(), want)
+		}
+	})
+
+	t.Run("head flag set with no org returns org error", func(t *testing.T) {
+		summaryByTitle = false
+		summaryByRepo = false
+		summaryByBranch = false
+		summaryHead = "renovate/foo"
 
 		// Ensure org is not set so we hit the org-missing error before any gh call.
 		err := runSummary(summaryCmd, nil)

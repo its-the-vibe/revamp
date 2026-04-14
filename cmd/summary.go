@@ -12,10 +12,11 @@ import (
 )
 
 var (
-	summaryByTitle bool
-	summaryByRepo  bool
-	summaryLimit   int
-	summaryBranch  string
+	summaryByTitle  bool
+	summaryByRepo   bool
+	summaryByBranch bool
+	summaryLimit    int
+	summaryHead     string
 )
 
 var summaryCmd = &cobra.Command{
@@ -27,14 +28,15 @@ var summaryCmd = &cobra.Command{
 func init() {
 	summaryCmd.Flags().BoolVar(&summaryByTitle, "title", false, "Group and count open Renovate PRs by title")
 	summaryCmd.Flags().BoolVar(&summaryByRepo, "repo", false, "Group and count open Renovate PRs by repository")
+	summaryCmd.Flags().BoolVar(&summaryByBranch, "branch", false, "Group and count open Renovate PRs by branch name")
 	summaryCmd.Flags().IntVar(&summaryLimit, "limit", 100, "Maximum number of PRs to fetch")
-	summaryCmd.Flags().StringVar(&summaryBranch, "branch", "", "List repositories with open PRs from the given branch")
+	summaryCmd.Flags().StringVar(&summaryHead, "head", "", "List repositories with open PRs from the given branch")
 	rootCmd.AddCommand(summaryCmd)
 }
 
 func runSummary(cmd *cobra.Command, args []string) error {
-	if !summaryByTitle && !summaryByRepo && summaryBranch == "" {
-		return fmt.Errorf("specify at least one of --title, --repo, or --branch")
+	if !summaryByTitle && !summaryByRepo && !summaryByBranch && summaryHead == "" {
+		return fmt.Errorf("specify at least one of --title, --repo, --branch, or --head")
 	}
 
 	org := viper.GetString("org")
@@ -54,8 +56,14 @@ func runSummary(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if summaryBranch != "" {
-		if err := printBranchRepos(org, summaryBranch); err != nil {
+	if summaryByBranch {
+		if err := printSummary(org, summaryLimit, "headRefName", `.[].headRefName`); err != nil {
+			return err
+		}
+	}
+
+	if summaryHead != "" {
+		if err := printBranchRepos(org, summaryHead); err != nil {
 			return err
 		}
 	}
