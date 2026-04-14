@@ -241,7 +241,7 @@ func parseTitleURLLines(output string) (titleCount map[string]int, titleURL map[
 	return
 }
 
-
+// uniqueSortedLines splits output by newlines, deduplicates, and returns the
 // entries sorted alphabetically. Empty lines are ignored.
 func uniqueSortedLines(output string) []string {
 	seen := map[string]bool{}
