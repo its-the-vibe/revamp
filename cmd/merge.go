@@ -14,6 +14,7 @@ var (
 	mergeBranch  string
 	mergeDryRun  bool
 	mergeVerbose bool
+	mergeLimit   int
 )
 
 var mergeCmd = &cobra.Command{
@@ -26,6 +27,7 @@ func init() {
 	mergeCmd.Flags().StringVar(&mergeBranch, "branch", "", "Only merge PRs from the given branch")
 	mergeCmd.Flags().BoolVar(&mergeDryRun, "dry-run", false, "Print what would be merged without actually merging")
 	mergeCmd.Flags().BoolVar(&mergeVerbose, "verbose", false, "Print additional details during merging")
+	mergeCmd.Flags().IntVar(&mergeLimit, "limit", 100, "Maximum number of PRs to fetch")
 	rootCmd.AddCommand(mergeCmd)
 }
 
@@ -42,6 +44,7 @@ func runMerge(cmd *cobra.Command, args []string) error {
 			"--owner", org,
 			"--head", mergeBranch,
 			"--state", "open",
+			"-L", fmt.Sprintf("%d", mergeLimit),
 			"--json", "url,title",
 			"--jq", `.[] | .url + "\t" + .title`,
 		}
@@ -51,7 +54,7 @@ func runMerge(cmd *cobra.Command, args []string) error {
 			"--owner", org,
 			"--author", "app/renovate",
 			"--state", "open",
-			"-L", "100",
+			"-L", fmt.Sprintf("%d", mergeLimit),
 			"--json", "url,title",
 			"--jq", `.[] | .url + "\t" + .title`,
 		}
@@ -76,6 +79,9 @@ func runMerge(cmd *cobra.Command, args []string) error {
 			continue
 		}
 		parts := strings.SplitN(line, "\t", 2)
+		if len(parts) == 0 || parts[0] == "" {
+			continue
+		}
 		entry := prEntry{url: parts[0]}
 		if len(parts) == 2 {
 			entry.title = parts[1]

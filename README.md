@@ -198,3 +198,9 @@ All flags can be combined:
 ```bash
 revamp merge --branch renovate/foo --dry-run --verbose
 ```
+
+The number of PRs fetched defaults to 100 and can be changed with the `--limit` flag:
+
+```bash
+revamp merge --limit 500
+```
