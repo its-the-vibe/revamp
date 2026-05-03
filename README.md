@@ -1,5 +1,7 @@
 # revamp
 
+[![CI](https://github.com/its-the-vibe/revamp/actions/workflows/ci.yaml/badge.svg)](https://github.com/its-the-vibe/revamp/actions/workflows/ci.yaml)
+
 A command line tool for managing Renovate PRs.
 
 ## Prerequisites
