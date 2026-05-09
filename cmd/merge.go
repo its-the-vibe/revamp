@@ -126,9 +126,9 @@ func runMerge(cmd *cobra.Command, args []string) error {
 			failures = append(failures, msg)
 			failed++
 		} else {
-			if mergeVerbose {
-				fmt.Printf("Merged:  %s  %s\n", pr.url, pr.title)
-			}
+			//if mergeVerbose {
+			fmt.Printf("Merged:  %s  %s\n", pr.url, pr.title)
+			//}
 			merged++
 		}
 	}
