@@ -17,8 +17,11 @@ var listCmd = &cobra.Command{
 	RunE:  runList,
 }
 
+var head string
+
 func init() {
 	rootCmd.AddCommand(listCmd)
+	listCmd.Flags().StringVar(&head, "head", "", "Filter PRs by base branch")
 }
 
 func runList(cmd *cobra.Command, args []string) error {
@@ -33,8 +36,14 @@ func runList(cmd *cobra.Command, args []string) error {
 		"--author", "app/renovate",
 		"--state", "open",
 		"-L", "100",
-		"--json", "title,repository",
-		"--jq", `.[] | "\(.repository.nameWithOwner) | \(.title)"`,
+	}
+
+	if head == "" {
+		ghArgs = append(ghArgs, "--json", "title,repository")
+		ghArgs = append(ghArgs, "--jq", `.[] | "\(.repository.nameWithOwner) | \(.title)"`)
+	} else {
+		ghArgs = append(ghArgs, "--json", "url")
+		ghArgs = append(ghArgs, "--head", head)
 	}
 
 	ghCmd := exec.Command("gh", ghArgs...)
